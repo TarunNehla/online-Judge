@@ -1,9 +1,10 @@
 // routes.js
 const express = require('express');
-const User = require('./userModel');
+const User = require('./userModel').User;
 const Plist = require('./userModel').Plist;
 const router = express.Router();
 const generateCodeFile = require('./generateFile');
+
 router.post('/register', async (req, res) => {
     const {
         registerName,

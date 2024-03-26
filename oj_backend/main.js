@@ -3,6 +3,8 @@ const { app, PORT } = require('./server');
 const { connectToDatabase } = require('./database');
 const routes = require('./routes');
 
+console.log('Starting the server...');
+
 // Connect to MongoDB
 connectToDatabase();
 
