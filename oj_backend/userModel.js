@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   registerName: String,
   registerEmail: String,
-  registerPassword: String,
+  passwordHash: String,
 });
 
 const PlistSchema = new mongoose.Schema({

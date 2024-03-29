@@ -4,6 +4,10 @@ const User = require('./userModel').User;
 const Plist = require('./userModel').Plist;
 const router = express.Router();
 const generateCodeFile = require('./generateFile');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt')
+require('dotenv').config();
+
 
 router.post('/register', async (req, res) => {
     const {
@@ -28,12 +32,14 @@ router.post('/register', async (req, res) => {
             message: 'Email is already registered.'
           });
         }
-    
+        
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(registerPassword,saltRounds)
         // Create a new user document and save it to the database
         const newUser = new User({
           registerName,
           registerEmail,
-          registerPassword,
+          passwordHash,
         });
         await newUser.save();
     
@@ -57,19 +63,23 @@ router.post('/login', async (req, res) => {
     try {
       // Find the user document with the matching email
       const user = await User.findOne({ registerEmail: loginEmail });
-  
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid credentials.' });
-      }
-  
+      const passwordCorrect = user === null
+      ? false
+      : await bcrypt.compare(loginPassword, user.passwordHash)
       // Check if the password matches the one stored in the database
-      if (user.registerPassword !== loginPassword) {
-        return res.status(401).json({ message: 'Invalid credentials.' });
+      if (!(user && passwordCorrect)) {
+        return response.status(401).json({
+          error: 'invalid username or password'
+        })
       }
-  
       // In a real application, you might use a JWT (JSON Web Token) for authentication and send it back as a response.
-  
-      return res.status(200).json({ message: 'Login successful.' });
+      const userForToken = {
+        username: user.registerEmail,
+        id: user._id,
+      }
+      
+      const token = jwt.sign(userForToken, process.env.SECRET)
+      res.status(200).send({ token, userMail: user.registerEmail, name: user.registerName })
     } catch (error) {
       console.error('Error logging in user:', error);
       return res.status(500).json({ message: 'Internal server error.' });
