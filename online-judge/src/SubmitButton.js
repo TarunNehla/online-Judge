@@ -1,14 +1,14 @@
+// SubmitButton.js
 import React from 'react';
-import Session from './Session'; // Import your Session component
 
-const SubmitButton = ({ problemId, language, code, userEmail }) => {
-  const session = Session(); // Initialize the Session component
+const SubmitButton = ({ problemId, language, code}) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check user's login status before proceeding
-    if (!session.isLoggedIn) {
+    // Retrieve the token from local storage
+    const token = localStorage.getItem('token');
+    if (!token) {
       alert('Login first to submit your response'); // Display a warning message
       return; // Stop the submission process
     }
@@ -18,14 +18,17 @@ const SubmitButton = ({ problemId, language, code, userEmail }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
         },
-        body: JSON.stringify({ userEmail, problemId, language, code }),
+        body: JSON.stringify({ problemId, language, code }),
       });
 
+      const data = await response.json();
       if (response.status === 200) {
         console.log('Code file generated and saved successfully.');
+        // Handle additional success operations here, if necessary
       } else {
-        console.error('Error generating and saving code file.');
+        console.error('Error generating and saving code file:', data.message);
       }
     } catch (error) {
       console.error('Error generating and saving code file:', error);

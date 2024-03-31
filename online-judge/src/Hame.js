@@ -1,52 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import LoginModal from './components/LoginModel';
 import RegisterModal from './components/RegisterModel';
-import Session from './Session'; // Assuming Session.js exists
 import DataTable from './DataTable';
-
-
+import Session from './Session';
 
 const Home = () => {
-    const session = Session();
-  
-    // State to store login and registration data
-    const [loginData, setLoginData] = useState({
-      loginEmail: '',
-      loginPassword: '',
-    });
-  
-    const [registerData, setRegisterData] = useState({
-      registerName: '',
-      registerEmail: '',
-      registerPassword: '',
-    });
-  
-    
-    const handleLoginSubmit = async (e) => {
-      e.preventDefault();
-  
-      try {
-        const response = await fetch('http://localhost:5000/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(loginData),
-        });
-  
-        const data = await response.json();
-        alert(data.message);
-  
-        if (response.status === 200) {
-          // Update the session state upon successful login
-          session.login();
-        }
-      } catch (error) {
-        alert('Error: ' + error.message);
+  // State to store login and registration data
+  const session = Session();
+  const [loginData, setLoginData] = useState({
+    loginEmail: '',
+    loginPassword: '',
+  });
+
+  const [registerData, setRegisterData] = useState({
+    registerName: '',
+    registerEmail: '',
+    registerPassword: '',
+  });
+
+  // State to track if the user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check local storage for token on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      const data = await response.json();
+      alert(data.message);
+
+      if (response.status === 200) {
+        // Store the token in local storage and update login state
+        localStorage.setItem('token', data.token);
+        setIsLoggedIn(true);
       }
-    };
-  
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  };
+
     // Function to handle registration form submission
     const handleRegisterSubmit = async (e) => {
       e.preventDefault();
@@ -78,12 +84,14 @@ const Home = () => {
     };
   
     const handleLogout = () => {
-      session.logout(); // Call the logout function from the session component
+      // Remove the token from local storage and update login state
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
     };
   
     return (
       <div>
-        <Header isLoggedIn={session.isLoggedIn} handleLogout={handleLogout} />
+        <Header isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
         <LoginModal handleLoginSubmit={handleLoginSubmit} handleInputChange={handleInputChange} />
         <RegisterModal handleRegisterSubmit={handleRegisterSubmit} handleInputChange={handleInputChange} />
         <DataTable />

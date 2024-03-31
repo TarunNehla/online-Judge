@@ -10,29 +10,11 @@ const DetailView = () => {
   const [editorText, setEditorText] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('cpp');
 
-  // code to fetch email id from beckend
-  const [userEmail, setUserEmail] = useState(''); // Add a state to store user's email
-
-  useEffect(() => {
-    // Fetch the user's email from the backend when the component mounts
-    fetch('http://localhost:5000/getUserEmail', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setUserEmail(data.email); // Store the user's email in the state
-      })
-      .catch((error) => {
-        console.error('Error fetching user email:', error);
-      });
-  }, []);
-
+  const [userEmail, setUserEmail] = useState(''); // Add state to store user's email
 
   useEffect(() => {
     fetchData();
+    fetchUserEmail(); // Fetch user's email when the component mounts
   }, []);
 
   const fetchData = async () => {
@@ -46,20 +28,27 @@ const DetailView = () => {
     }
   };
 
+  const fetchUserEmail = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/getUserEmail', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setUserEmail(data.email); // Store user's email in state
+    } catch (error) {
+      console.error('Error fetching user email:', error);
+    }
+  };
+
   const handleEditorChange = (e) => {
     setEditorText(e.target.value);
   };
 
   const handleLanguageChange = (e) => {
     setSelectedLanguage(e.target.value);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle the form submission here, for example, you can send the editorText and selectedLanguage to the backend
-    console.log('Submitted text:', editorText);
-    console.log('Selected language:', selectedLanguage);
-    console.log('User email:', userEmail); // This will print the user's email in the console
   };
 
   return (
@@ -79,7 +68,7 @@ const DetailView = () => {
         </Col>
         <Col md={6}>
           <h2>Text Editor</h2>
-          <Form onSubmit={handleSubmit}>
+          <Form>
             <Form.Group controlId="languageSelectBox">
               <Form.Label>Select Language:</Form.Label>
               <Form.Control as="select" value={selectedLanguage} onChange={handleLanguageChange}>
@@ -97,7 +86,7 @@ const DetailView = () => {
                 placeholder="Write your code here..."
               />
             </Form.Group>
-            <SubmitButton problemId={id} language={selectedLanguage} code={editorText} />
+            <SubmitButton problemId={id} language={selectedLanguage} code={editorText}/>
           </Form>
         </Col>
       </Row>

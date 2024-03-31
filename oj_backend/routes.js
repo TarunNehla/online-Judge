@@ -7,7 +7,7 @@ const generateCodeFile = require('./generateFile');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 require('dotenv').config();
-
+const executeFile = require('./execute');
 
 router.post('/register', async (req, res) => {
     const {
@@ -79,7 +79,7 @@ router.post('/login', async (req, res) => {
       }
       
       const token = jwt.sign(userForToken, process.env.SECRET)
-      res.status(200).send({ token, userMail: user.registerEmail, name: user.registerName })
+      res.status(200).send({ token, userMail: user.registerEmail, name: user.registerName, message: 'Login successful.' })
     } catch (error) {
       console.error('Error logging in user:', error);
       return res.status(500).json({ message: 'Internal server error.' });
@@ -99,10 +99,17 @@ router.get('/api/plist', async (req, res) => {
   }
 })
 
-router.post('/generateCodeFile', (req, res) => {
-  const { problemId, language, code } = req.body;
-  generateCodeFile(problemId, language, code);
-  res.status(200).json({ message: 'Code file generated and saved successfully.' });
+router.post('/generateCodeFile', async (req, res, next) => {
+  try {
+    const { email, problemId, language, code } = req.body;
+    const filePath = await generateCodeFile(problemId, language, code);
+    const output = await executeFile(filePath.path); // Assuming executeFile is also an async function
+    console.log(output);
+    res.status(200).json({ message: 'Code file generated and saved successfully.' });
+  } catch (error) {
+    // Pass the error to the Express error handler
+    next(error);
+  }
 });
 
 
