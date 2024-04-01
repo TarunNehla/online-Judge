@@ -1,7 +1,7 @@
 // SubmitButton.js
 import React from 'react';
 
-const SubmitButton = ({ problemId, language, code}) => {
+const SubmitButton = ({ problemId, language, code, handleOutputChange}) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +26,7 @@ const SubmitButton = ({ problemId, language, code}) => {
       const data = await response.json();
       if (response.status === 200) {
         console.log('Code file generated and saved successfully.');
+        handleOutputChange(data.output)
         // Handle additional success operations here, if necessary
       } else {
         console.error('Error generating and saving code file:', data.message);

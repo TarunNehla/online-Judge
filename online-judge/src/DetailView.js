@@ -9,6 +9,7 @@ const DetailView = () => {
   const [detailData, setDetailData] = useState(null);
   const [editorText, setEditorText] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('cpp');
+  const [output, setOutput] = useState('');
 
   const [userEmail, setUserEmail] = useState(''); // Add state to store user's email
 
@@ -51,6 +52,10 @@ const DetailView = () => {
     setSelectedLanguage(e.target.value);
   };
 
+  const handleOutputChange = (output) => {
+    setOutput(output);
+  };
+
   return (
     <Container>
       <Row>
@@ -86,8 +91,12 @@ const DetailView = () => {
                 placeholder="Write your code here..."
               />
             </Form.Group>
-            <SubmitButton problemId={id} language={selectedLanguage} code={editorText}/>
+            <SubmitButton problemId={id} language={selectedLanguage} code={editorText} handleOutputChange={handleOutputChange}/>
           </Form>
+          <div style={{ marginTop: '20px' }}>
+            <h3>Output</h3>
+            <div>{output.message}</div>
+          </div>
         </Col>
       </Row>
     </Container>

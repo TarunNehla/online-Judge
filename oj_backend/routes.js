@@ -103,9 +103,9 @@ router.post('/generateCodeFile', async (req, res, next) => {
   try {
     const { email, problemId, language, code } = req.body;
     const filePath = await generateCodeFile(problemId, language, code);
-    const output = await executeFile(filePath.path); // Assuming executeFile is also an async function
+    const output = await executeFile(filePath.path, problemId); // Assuming executeFile is also an async function
     console.log(output);
-    res.status(200).json({ message: 'Code file generated and saved successfully.' });
+    res.status(200).json({ message: 'Code file generated and saved successfully.', output:output});
   } catch (error) {
     // Pass the error to the Express error handler
     next(error);
