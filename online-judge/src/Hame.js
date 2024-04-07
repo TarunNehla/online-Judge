@@ -3,11 +3,10 @@ import Header from './components/Header';
 import LoginModal from './components/LoginModel';
 import RegisterModal from './components/RegisterModel';
 import DataTable from './DataTable';
-import Session from './Session';
+
 
 const Home = () => {
   // State to store login and registration data
-  const session = Session();
   const [loginData, setLoginData] = useState({
     loginEmail: '',
     loginPassword: '',
@@ -21,10 +20,11 @@ const Home = () => {
 
   // State to track if the user is logged in
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState('');
 
   // Check local storage for token on component mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');    
     setIsLoggedIn(!!token);
   }, []);
 
@@ -46,7 +46,9 @@ const Home = () => {
       if (response.status === 200) {
         // Store the token in local storage and update login state
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
         setIsLoggedIn(true);
+        setUserId(data.userId);
       }
     } catch (error) {
       alert('Error: ' + error.message);
@@ -94,7 +96,7 @@ const Home = () => {
         <Header isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
         <LoginModal handleLoginSubmit={handleLoginSubmit} handleInputChange={handleInputChange} />
         <RegisterModal handleRegisterSubmit={handleRegisterSubmit} handleInputChange={handleInputChange} />
-        <DataTable />
+        <DataTable isLoggedIn={isLoggedIn} userId={userId}  />
       </div>
     );
   };

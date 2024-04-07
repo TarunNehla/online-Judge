@@ -11,11 +11,9 @@ const DetailView = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('cpp');
   const [output, setOutput] = useState('');
 
-  const [userEmail, setUserEmail] = useState(''); // Add state to store user's email
 
   useEffect(() => {
     fetchData();
-    fetchUserEmail(); // Fetch user's email when the component mounts
   }, []);
 
   const fetchData = async () => {
@@ -29,20 +27,6 @@ const DetailView = () => {
     }
   };
 
-  const fetchUserEmail = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/getUserEmail', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
-      setUserEmail(data.email); // Store user's email in state
-    } catch (error) {
-      console.error('Error fetching user email:', error);
-    }
-  };
 
   const handleEditorChange = (e) => {
     setEditorText(e.target.value);

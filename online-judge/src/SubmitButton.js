@@ -20,7 +20,7 @@ const SubmitButton = ({ problemId, language, code, handleOutputChange}) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
         },
-        body: JSON.stringify({ problemId, language, code }),
+        body: JSON.stringify({token, problemId, language, code }),
       });
 
       const data = await response.json();

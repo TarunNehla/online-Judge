@@ -2,12 +2,14 @@
 const express = require('express');
 const User = require('./userModel').User;
 const Plist = require('./userModel').Plist;
+const Submission = require('./userModel').Submission;
 const router = express.Router();
 const generateCodeFile = require('./generateFile');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 require('dotenv').config();
 const executeFile = require('./execute');
+const mongoose = require('mongoose');
 
 router.post('/register', async (req, res) => {
     const {
@@ -79,7 +81,7 @@ router.post('/login', async (req, res) => {
       }
       
       const token = jwt.sign(userForToken, process.env.SECRET)
-      res.status(200).send({ token, userMail: user.registerEmail, name: user.registerName, message: 'Login successful.' })
+      res.status(200).send({ token,userId : user._id, userMail: user.registerEmail, name: user.registerName, message: 'Login successful.' })
     } catch (error) {
       console.error('Error logging in user:', error);
       return res.status(500).json({ message: 'Internal server error.' });
@@ -99,16 +101,57 @@ router.get('/api/plist', async (req, res) => {
   }
 })
 
+
+router.get('/api/submissions/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid userId format' });
+    }
+    const objectId = new mongoose.Types.ObjectId(userId);
+    const submissions = await Submission.aggregate([
+      { $match: { userId: objectId } },
+      { $sort: { submissionTime: -1 } },
+      {
+        $group: {
+          _id: "$problemId",
+          submissionId: { $first: "$_id" },
+          result: { $first: "$result" },
+          submissionTime: { $first: "$submissionTime" }
+        }
+      }
+    ]);
+
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching submissions from the database:', error);
+    res.status(500).json({ error: 'Error fetching submissions from the database', details: error.message });
+  }
+});
+
+
 router.post('/generateCodeFile', async (req, res, next) => {
   try {
-    const { email, problemId, language, code } = req.body;
+    const {token, problemId, language, code } = req.body;
+    const decoded = jwt.verify(token, process.env.SECRET);
     const filePath = await generateCodeFile(problemId, language, code);
     const output = await executeFile(filePath.path, problemId); // Assuming executeFile is also an async function
     console.log(output);
-    res.status(200).json({ message: 'Code file generated and saved successfully.', output:output});
+    const result = output.success ? 'correct' : 'incorrect';
+    const user = await User.findOne({ registerEmail: decoded.username});
+    const newSubmission = new Submission({
+      userId: user._id,
+      problemId: problemId,
+      result: result
+    });
+    await newSubmission.save();
+    res.status(200).json({
+      message: 'Submission result saved successfully.',
+      submissionId: newSubmission._id,
+      output: output 
+    });
   } catch (error) {
-    // Pass the error to the Express error handler
-    next(error);
+    res.status(500).json({ message: 'Error saving submission result.', error: error });
   }
 });
 
